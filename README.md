@@ -6,7 +6,8 @@ This library contains class to represent **JSON object** and **functions to impo
 
 This library is **header-only** *(no precompiled files)* and **single-file** *(only one file for everything)*.
 All contents are kept in **namespace `json`** as listed below.
-It **does not** use any *external libraries* (**only** *standard C++ libraries*)
+It **does not** use any *external libraries* (**only** *standard C++ libraries*).
+Test program called `test.cpp` is just reading and writing same one JSON object.
 
 ### Classes, constants and variables
 
