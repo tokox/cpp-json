@@ -537,7 +537,7 @@ namespace json {
 		put(it, '[');
 		auto& vec = obj.get_value<object::Vector>();
 		for(int i = 0; (size_t)i < vec.size(); i++) {
-			if(tab != -1) {
+			if(tab >= 0) {
 				put(it, '\n');
 				put(it, '\t', tab+1);
 			}
@@ -545,7 +545,7 @@ namespace json {
 			if((size_t)i+1 != vec.size())
 				put(it, ',');
 		}
-		if(tab != -1 && !vec.empty()) {
+		if(tab >= 0 && !vec.empty()) {
 			put(it, '\n');
 			put(it, '\t', tab);
 		}
@@ -557,20 +557,20 @@ namespace json {
 		put(it, '{');
 		auto& mp = obj.get_value<object::Map>();
 		for(auto mit = mp.begin(); mit != mp.end();) {
-			if(tab != -1) {
+			if(tab >= 0) {
 				put(it, '\n');
 				put(it, '\t', tab+1);
 			}
 			to(object(mit->first), it, tab!=-1?tab+1:-1);
 			put(it, ':');
-			if(tab != -1)
+			if(tab >= 0)
 				put(it, ' ');
 			to(mit->second, it, tab!=-1?tab+1:-1);
 			mit++;
 			if(mit != mp.end())
 				put(it, ',');
 		}
-		if(tab != -1 && !mp.empty()) {
+		if(tab >= 0 && !mp.empty()) {
 			put(it, '\n');
 			put(it, '\t', tab);
 		}
