@@ -13,8 +13,10 @@
 #include <cmath>
 #include <sstream>
 
-namespace json {
-	class object {
+namespace json
+{
+	class object
+	{
 		public:
 			using variant = std::variant<
 				std::monostate,
@@ -114,7 +116,10 @@ namespace json {
 			variant actual_object;
 	};
 
-	using import_error = std::runtime_error;
+	class import_error : public std::runtime_error
+	{
+		using std::runtime_error::runtime_error;
+	};
 
 	const char* ERR_VAL = "Wrong value!";
 	const char* ERR_RNG = "Value out of range!";
