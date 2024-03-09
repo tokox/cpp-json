@@ -121,13 +121,13 @@ namespace json
 		using std::runtime_error::runtime_error;
 	};
 
-	const char* ERR_VAL = "Wrong value!";
-	const char* ERR_RNG = "Value out of range!";
-	const char* ERR_KEY = "Repeated map key!";
-	const char* ERR_END = "Unexpected end!";
-	const char* ERR_IMP = "Value not implemented!";
+	constexpr char* ERR_VAL = "Wrong value!";
+	constexpr char* ERR_RNG = "Value out of range!";
+	constexpr char* ERR_KEY = "Repeated map key!";
+	constexpr char* ERR_END = "Unexpected end!";
+	constexpr char* ERR_IMP = "Value not implemented!";
 
-	size_t float_prec = 32;
+	constexpr size_t float_prec = 32;
 
 	namespace
 	{
@@ -495,7 +495,7 @@ namespace json
 		char* buf = new char[bufsize];
 		size_t needed_bufsize = snprintf(buf, bufsize, ("%."+std::to_string(float_prec)+"Lg").c_str(), obj.get_value<object::Float>())+1;
 		if(needed_bufsize > bufsize)
-			throw std::runtime_error("bufsize too small in json::float_to: bufsize="+std::to_string(bufsize)+", needed_bufsize="+std::to_string(needed_bufsize));
+			throw std::runtime_error("bufsize too small in json::float_to: bufsize=" + std::to_string(bufsize) + ", needed_bufsize=" + std::to_string(needed_bufsize) + " (this should never happen, please report this error!)");
 		put(it, buf);
 		delete[] buf;
 		return it;
