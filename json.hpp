@@ -121,13 +121,13 @@ namespace json
 		using std::runtime_error::runtime_error;
 	};
 
-	constexpr char* ERR_VAL = "Wrong value!";
-	constexpr char* ERR_RNG = "Value out of range!";
-	constexpr char* ERR_KEY = "Repeated map key!";
-	constexpr char* ERR_END = "Unexpected end!";
-	constexpr char* ERR_IMP = "Value not implemented!";
+	constexpr const char* ERR_VAL = "Wrong value!";
+	constexpr const char* ERR_RNG = "Value out of range!";
+	constexpr const char* ERR_KEY = "Repeated map key!";
+	constexpr const char* ERR_END = "Unexpected end!";
+	constexpr const char* ERR_IMP = "Value not implemented!";
 
-	constexpr size_t float_prec = 32;
+	constexpr const size_t float_prec = 32;
 
 	namespace
 	{

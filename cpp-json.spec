@@ -9,6 +9,8 @@ Source0:        https://github.com/tokox/cpp-json/archive/v%{version}.tar.gz
 
 BuildArch:      noarch
 
+Requires:       libstdc++
+
 %description
 This is a JSON object import/export library in C++. It contains class to represent JSON Object and functions to read it from stream and write it to stream. That is basically it. For more information look at README.
 
