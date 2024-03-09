@@ -1,5 +1,5 @@
-#ifndef CPP_JSON_HPP
-#define CPP_JSON_HPP
+#ifndef TOKOX_CPP_JSON_HPP
+#define TOKOX_CPP_JSON_HPP
 
 #include <string>
 #include <vector>
