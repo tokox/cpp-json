@@ -3,7 +3,7 @@
 
 int main()
 {
-	json::object obj;
+	tokox::json::object obj;
 	std::cin >> obj;
 	std::cout << obj << std::endl;
 }
