@@ -1,5 +1,5 @@
 Name:           tokox-cpp-json
-Version:        1.0
+Version:        1.1
 Release:        1%{?dist}
 Summary:        C++ JSON object import/export library
 
@@ -30,5 +30,9 @@ cp -a LICENSE.md README.md %{buildroot}/usr/share/doc/tokox/cpp-json
 %doc      /usr/share/doc/tokox/cpp-json/README.md
 
 %changelog
+* Sun Mar 10 2024 Tomasz Kośnikowski (tokox) - 1.1-1
+- Wrapped everything in tokox namespace and reformated code
+- Updated README
+
 * Sat Mar 09 2024 Tomasz Kośnikowski (tokox) - 1.0-1
 - First Release!
