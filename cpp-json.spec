@@ -14,6 +14,14 @@ Requires:       libstdc++
 
 %description
 This is a JSON object import/export library in C++. It contains class to represent JSON Object and functions to read it from stream and write it to stream. That is basically it. For more information look at README.
+Install from copr:
+```
+dnf copr enable tokox/cpp-json
+dnf install tokox-cpp-json
+```
+Library should install in `/usr/include/tokox/cpp-json/` and docs should install in `/usr/share/doc/tokox/cpp-json/`
+
+Bugs and issues report at github: tokox/cpp-json
 
 %prep
 %setup -n cpp-json-%{version}
@@ -31,8 +39,8 @@ cp -a LICENSE.md README.md %{buildroot}/usr/share/doc/tokox/cpp-json
 
 %changelog
 * Sun Mar 10 2024 Tomasz Kośnikowski (tokox) - 1.1-1
-- Wrapped everything in tokox namespace and reformated code
-- Updated README
+  - Wrapped everything in tokox namespace and reformated code
+  - Updated README
 
 * Sat Mar 09 2024 Tomasz Kośnikowski (tokox) - 1.0-1
-- First Release!
+  - First Release!

@@ -1,0 +1,106 @@
+name: Release
+run-name: Release ${{ github.ref }}
+
+on:
+  push:
+    tags:
+      - 'v\d+\.\d+'
+
+permissions:
+  contents: write
+
+jobs:
+  copr_build:
+    name: Build on copr
+    runs-on: ubuntu-latest
+    container: fedora:latest
+
+    steps:
+      - name: Install dnf-copr and copr-cli
+        run: dnf install -y dnf-plugins-core copr-cli
+
+      - name: Setup copr-cli
+        run: |
+          mkdir -p ~/.config/copr
+          echo "[copr-cli]"                                    > ~/.config/copr
+          echo "login = ${{ secrets.COPR_LOGIN }}"            >> ~/.config/copr
+          echo "username = tokox"                             >> ~/.config/copr
+          echo "token = ${{ secrets.COPR_TOKEN }}"            >> ~/.config/copr
+          echo "copr_url = https://copr.fedorainfracloud.org" >> ~/.config/copr
+
+      - name: Build package
+        run: copr-cli buildscm --clone-url "${{ github.repository }}" --commit "${{ github.ref }}" tokox/cpp-json --timeout 1800
+
+
+  make_release:
+    name: Make release
+    runs-on: ubuntu-latest
+    container: fedora:latest
+    needs: [copr_build]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.1.1
+
+      - name: Get previous tag
+        id: get_previous_tag
+        uses: jossef/action-latest-release-info@v1.2.2
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Move vlatest to ${{ github.ref }}
+        uses: rickstaa/action-create-tag@v1.7.2
+        with:
+          tag: vlatest
+          force_push_tag: true
+          commit_sha: ${{ github.sha }}
+
+      - name: Create changelog from spec file
+        run: |
+          echo "**Changelog**" > changelog.md
+          sed -n '/%changelog/,$p' cpp-json.spec | tail -n +2 | awk '/\*/{if (found++ == 1) exit} 1' >> changelog.md
+          echo "**Full Changelog**: https://github.com/tokox/cpp-json/compare/${{ steps.get_previous_tag.outputs.tag_name }}...${{ github.ref }}" >> changelog.md
+
+      - name: Create release
+        uses: ncipollo/release-action@v1.14.0
+        with:
+          name: Release ${{ github.ref }}
+          bodyFile: changelog.md
+          tag: ${{ github.ref }}
+
+
+  upload_assets:
+    name: Upload assets to release from copr
+    runs-on: ubuntu-latest
+    container: fedora:latest
+    needs: [make_release, copr_build]
+
+    steps:
+      - name: Install dnf-copr and copr-cli
+        run: dnf install -y dnf-plugins-core copr-cli
+
+      - name: Setup copr-cli
+        run: |
+          mkdir -p ~/.config/copr
+          echo "[copr-cli]"                                    > ~/.config/copr
+          echo "login = ${{ secrets.COPR_LOGIN }}"            >> ~/.config/copr
+          echo "username = tokox"                             >> ~/.config/copr
+          echo "token = ${{ secrets.COPR_TOKEN }}"            >> ~/.config/copr
+          echo "copr_url = https://copr.fedorainfracloud.org" >> ~/.config/copr
+
+      - name: Get copr build id
+        id: get_copr_build_id
+        run: echo "id=$(copr-cli list-builds --output-format text-row tokox/cpp-json | grep 'tokox-cpp-json' | grep 'succeeded' | awk '{print $1; exit}') >> $GITHUB_OUTPUT
+
+      - name: Download assets
+        run: copr-cli download --output-dir assets tokox/cpp-json ${{ steps.get_copr_build_id.outputs.id }}
+
+      - name: Upload assets
+        uses: ncipollo/release-action@v1.14.0
+        with:
+          allowUpdates: true
+          artifactErrorsFailBuild: true
+          artifacts: assets/**
+          omitBodyDuringUpdate: true
+          omitNameDuringUpdate: true
+          tag: ${{ github.ref }}
