@@ -6,13 +6,14 @@
 #include <map>
 #include <istream>
 #include <ostream>
-#include <variant>
+#include <any>
 #include <iterator>
 #include <limits>
 #include <algorithm>
 #include <cmath>
 #include <sstream>
-
+#include <typeinfo>
+#include <stdexcept>
 
 namespace tokox
 {
@@ -20,80 +21,118 @@ namespace tokox
 namespace json
 {
 
+class object;
+
+enum value_type
+{
+	Null,
+	Bool,
+	Int,
+	Float,
+	String,
+	Vector,
+	Map
+};
+
+value_type any_to_value_type(const std::any& v)
+{
+	if (!v.has_value())
+		return Null;
+	else if (v.type() == typeid(bool))
+		return Bool;
+	else if (v.type() == typeid(int))
+		return Int;
+	else if (v.type() == typeid(float))
+		return Float;
+	else if (v.type() == typeid(std::string))
+		return String;
+	else if (v.type() == typeid(std::vector<object>))
+		return Vector;
+	else if (v.type() == typeid(std::map<std::string, object>))
+		return Map;
+	else
+		throw std::runtime_error("Unknown value_type!");
+}
+
+template<typename T>
+concept object_type = std::is_same_v<T, std::nullptr_t> || std::is_same_v<T, bool> || std::is_same_v<T, long long int> || std::is_same_v<T, long double> || std::is_same_v<T, std::string> || std::is_same_v<T, std::vector<object>> || std::is_same_v<T, std::map<std::string, object>>;
+
+
+template<value_type V>
+using object_type_from_value_type = std::conditional_t<V == Null, std::nullptr_t, std::conditional_t<V == Bool, bool, std::conditional_t<V == Int, long long int, std::conditional_t<V == Float, long double, std::conditional_t<V == String, std::string, std::conditional_t<V == Vector, std::vector<object>, std::map<std::string, object>>>>>>>;
+
+template<object_type T>
+value_type value_type_from_object_type()
+{
+	if constexpr (std::is_same_v<T, std::nullptr_t>)
+		return Null;
+	else if constexpr (std::is_same_v<T, bool>)
+		return Bool;
+	else if constexpr (std::is_same_v<T, long long int>)
+		return Int;
+	else if constexpr (std::is_same_v<T, long double>)
+		return Float;
+	else if constexpr (std::is_same_v<T, std::string>)
+		return String;
+	else if constexpr (std::is_same_v<T, std::vector<object>>)
+		return Vector;
+	else if constexpr (std::is_same_v<T, std::map<std::string, object>>)
+		return Map;
+}
+
 class object
 {
 public:
-	using variant = std::variant<
-		std::monostate,
-		bool,
-		long long int,
-		long double,
-		std::string,
-		std::vector<object>,
-		std::map<std::string, object>
-	>;
-
-	enum value_type
-	{
-		Null,
-		Bool,
-		Int,
-		Float,
-		String,
-		Vector,
-		Map
-	};
-
-	object() : actual_object()
+	object(): actual_object()
 	{}
 
-	object(const variant& v) : actual_object(v)
+	object(const object& o): actual_object(o.get_any())
 	{}
 
-	object(const object& o) : actual_object(o.get_variant())
+	object(const std::any& v): actual_object(v)
 	{}
 
-	template<typename T>
+	template<object_type T>
 	object(const T& v) : actual_object(v)
-	{}
-
-	object& operator=(const variant& v)
 	{
-		this->actual_object = v;
-		return (*this);
+		if constexpr (std::is_same_v<T, std::nullptr_t>)
+			this->actual_object.reset();
 	}
 
 	object& operator=(const object& o)
 	{
-		this->actual_object = o.get_variant();
+		this->actual_object = o.get_any();
 		return (*this);
 	}
 
-	template<typename T>
-	object& operator=(const T& v)
+	object& operator=(const std::any& v)
 	{
 		this->actual_object = v;
 		return (*this);
 	}
 
-	variant& get_variant()
+	template<object_type T>
+	object& operator=(const T& v)
+	{
+		if constexpr (std::is_same_v<T, std::nullptr_t>)
+			this->actual_object.reset();
+		else
+			this->actual_object = v;
+		return (*this);
+	}
+	const std::any& get_any() const
 	{
 		return actual_object;
 	}
 
-	const variant& get_variant() const
+	operator std::any() const
 	{
-		return actual_object;
-	}
-
-	operator variant() const
-	{
-		return this->get_variant();
+		return this->get_any();
 	}
 
 	value_type get_value_type() const
 	{
-		return (value_type) this->actual_object.index();
+		return any_to_value_type(this->actual_object);
 	}
 
 	operator value_type() const
@@ -101,38 +140,38 @@ public:
 		return this->get_value_type();
 	}
 
-	template<int N>
-	auto& get_value()
-	{
-		return std::get<N>(this->actual_object);
-	}
-
-	template<int N>
-	const auto& get_value() const
-	{
-		return std::get<N>(this->actual_object);
-	}
-
-	template<typename T>
+	template<object_type T>
 	T& get_value()
 	{
-		return std::get<T>(this->actual_object);
+		return *std::any_cast<T>(&this->actual_object);
 	}
 
-	template<typename T>
+	template<object_type T>
 	const T& get_value() const
 	{
-		return std::get<T>(this->actual_object);
+		return *std::any_cast<T>(&this->actual_object);
 	}
 
-	template<typename T>
+	template<object_type T>
 	operator T() const
 	{
 		return this->get_value<T>();
 	}
 
+	template<value_type V>
+	auto& get_value()
+	{
+		return this->get_value<object_type_from_value_type<V>>();
+	}
+
+	template<value_type V>
+	const auto& get_value() const
+	{
+		return this->get_value<object_type_from_value_type<V>>();
+	}
+
 private:
-	variant actual_object;
+	std::any actual_object;
 };
 
 class import_error : public std::runtime_error
@@ -545,20 +584,20 @@ IT& to(const object& obj, IT& it, int tab = -1);
 template<class IT>
 IT& null_to(const object& obj, IT& it, int = -1)
 {
-	obj.get_value<object::Null>();
+	obj.get_value<Null>();
 	return put(it, "null");
 }
 
 template<class IT>
 IT& bool_to(const object& obj, IT& it, int = -1)
 {
-	return put(it, obj.get_value<object::Bool>() ? "true" : "false");
+	return put(it, obj.get_value<Bool>() ? "true" : "false");
 }
 
 template<class IT>
 IT& int_to(const object& obj, IT& it, int = -1)
 {
-	auto oint = obj.get_value<object::Int>();
+	auto oint = obj.get_value<Int>();
 	if (oint == 0)
 	{
 		put(it, '0');
@@ -587,7 +626,7 @@ IT& float_to(const object& obj, IT& it, int = -1)
 {
 	size_t bufsize = float_prec + 8;
 	char* buf = new char[bufsize];
-	size_t needed_bufsize = snprintf(buf, bufsize, ("%." + std::to_string(float_prec) + "Lg").c_str(), obj.get_value<object::Float>()) + 1;
+	size_t needed_bufsize = snprintf(buf, bufsize, ("%." + std::to_string(float_prec) + "Lg").c_str(), obj.get_value<Float>()) + 1;
 	if (needed_bufsize > bufsize)
 		throw std::runtime_error("bufsize too small in json::float_to: bufsize=" + std::to_string(bufsize) + ", needed_bufsize=" + std::to_string(needed_bufsize) + " (this should never happen, please report this error!)");
 	put(it, buf);
@@ -599,7 +638,7 @@ template<class IT>
 IT& string_to(const object& obj, IT& it, int = -1)
 {
 	put(it, '"');
-	for (auto& c : obj.get_value<object::String>())
+	for (auto& c : obj.get_value<String>())
 	{
 		switch (c)
 		{
@@ -638,7 +677,7 @@ template<class IT>
 IT& vector_to(const object& obj, IT& it, int tab = -1)
 {
 	put(it, '[');
-	auto& vec = obj.get_value<object::Vector>();
+	auto& vec = obj.get_value<Vector>();
 	for (int i = 0; (size_t) i < vec.size(); i++)
 	{
 		if (tab >= 0)
@@ -662,7 +701,7 @@ template<class IT>
 IT& map_to(const object& obj, IT& it, int tab = -1)
 {
 	put(it, '{');
-	auto& mp = obj.get_value<object::Map>();
+	auto& mp = obj.get_value<Map>();
 	for (auto mit = mp.begin(); mit != mp.end();)
 	{
 		if (tab >= 0)
@@ -692,19 +731,19 @@ IT& to(const object& obj, IT& it, int tab)
 {
 	switch (obj.get_value_type())
 	{
-		case object::Null:
+		case Null:
 			return null_to(obj, it, tab);
-		case object::Bool:
+		case Bool:
 			return bool_to(obj, it, tab);
-		case object::Int:
+		case Int:
 			return int_to(obj, it, tab);
-		case object::Float:
+		case Float:
 			return float_to(obj, it, tab);
-		case object::String:
+		case String:
 			return string_to(obj, it, tab);
-		case object::Vector:
+		case Vector:
 			return vector_to(obj, it, tab);
-		case object::Map:
+		case Map:
 			return map_to(obj, it, tab);
 	}
 	return it;
