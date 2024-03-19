@@ -57,7 +57,7 @@ jobs:
           repository: ${{ github.repository }}
           token: ${{ github.token }}
 
-      - name: Move vlatest to ${{ github.ref_name }}
+      - name: Move vlatest
         uses: rickstaa/action-create-tag@v1.7.2
         with:
           tag: vlatest
@@ -66,7 +66,7 @@ jobs:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
           gpg_passphrase: ${{ secrets.GPG_PASSPHRASE }}
 
-      - name: Create changelog from spec file
+      - name: Create changelog
         run: |
           echo "**Changelog**" > changelog.md
           sed -n '/%changelog/,$p' cpp-json.spec | tail -n +2 | awk '/\*/{if (found++ == 1) exit} 1' >> changelog.md
@@ -81,7 +81,7 @@ jobs:
 
 
   upload_assets:
-    name: Upload assets to release from copr
+    name: Upload assets
     runs-on: ubuntu-latest
     container: fedora:latest
     needs: [make_release, copr_build]
