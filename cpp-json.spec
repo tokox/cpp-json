@@ -1,5 +1,5 @@
 Name:           tokox-cpp-json
-Version:        1.1
+Version:        1.2
 Release:        1%{?dist}
 Summary:        C++ JSON object import/export library
 
@@ -9,8 +9,6 @@ BugURL:         https://github.com/tokox/cpp-json/issues
 Source0:        https://github.com/tokox/cpp-json/archive/v%{version}.tar.gz
 
 BuildArch:      noarch
-
-Requires:       libstdc++
 
 %description
 This is a JSON object import/export library in C++. It contains class to represent JSON Object and functions to read it from stream and write it to stream. That is basically it. For more information look at README.
@@ -38,6 +36,10 @@ cp -a LICENSE.md README.md %{buildroot}/usr/share/doc/tokox/cpp-json
 %doc      /usr/share/doc/tokox/cpp-json/README.md
 
 %changelog
+* Tue Mar 19 2024 Tomasz Kośnikowski (tokox) - 1.2-1
+  - Replaced std::variant with std::any
+  - improved object class
+
 * Sun Mar 10 2024 Tomasz Kośnikowski (tokox) - 1.1-1
   - Wrapped everything in tokox namespace and reformated code
   - Updated README
