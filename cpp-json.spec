@@ -1,6 +1,6 @@
 Name:           tokox-cpp-json
 Version:        1.2
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        C++ JSON object import/export library
 
 License:        MIT
@@ -36,6 +36,9 @@ cp -a LICENSE.md README.md %{buildroot}/usr/share/doc/tokox/cpp-json
 %doc      /usr/share/doc/tokox/cpp-json/README.md
 
 %changelog
+* Wed Mar 20 2024 Tomasz Kośnikowski (tokox) - 1.2-2
+  - Updated README
+
 * Tue Mar 19 2024 Tomasz Kośnikowski (tokox) - 1.2-1
   - Replaced std::variant with std::any
   - improved object class
