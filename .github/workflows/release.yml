@@ -5,6 +5,7 @@ on:
   push:
     tags:
       - 'v\d+\.\d+'
+      - 'v\d+\.\d+-\d+'
 
 permissions:
   contents: write
@@ -75,7 +76,7 @@ jobs:
       - name: Create release
         uses: ncipollo/release-action@v1.14.0
         with:
-          name: Release ${{ github.ref_name }}
+          name: ${{ contains(github.ref_name, '-') && 'Patch' || 'Release'}} ${{ github.ref_name }}
           bodyFile: changelog.md
           tag: ${{ github.ref_name }}
 
