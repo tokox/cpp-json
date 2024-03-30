@@ -10,9 +10,9 @@ value_type any_to_value_type(const std::any& v)
 		return Null;
 	else if (v.type() == typeid(bool))
 		return Bool;
-	else if (v.type() == typeid(int))
+	else if (v.type() == typeid(long long int))
 		return Int;
-	else if (v.type() == typeid(float))
+	else if (v.type() == typeid(long double))
 		return Float;
 	else if (v.type() == typeid(std::string))
 		return String;
