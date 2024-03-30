@@ -6,9 +6,18 @@
 namespace tokox::json
 {
 
-class import_error : public std::runtime_error
+class import_error : public std::exception
 {
-	using std::runtime_error::runtime_error;
+public:
+	import_error(const std::string& message): m_message(message) {}
+
+	const char* what() const noexcept override
+	{
+		return m_message.c_str();
+	}
+
+private:
+	std::string m_message;
 };
 
 constexpr const char* ERR_VAL = "Wrong value!";
