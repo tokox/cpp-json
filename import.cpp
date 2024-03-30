@@ -41,7 +41,7 @@ template<class IT>
 char get(IT& it, IT end)
 {
 	if (it == end)
-		throw import_error(ERR_END);
+		throw import_error(UNEXPECTED_END);
 	return *it;
 }
 
@@ -68,7 +68,7 @@ object null_from(IT& it, IT end)
 	for (int i = 0; i < 4; i++)
 	{
 		if (getmv(it, end) != "null"[i])
-			throw import_error(ERR_VAL);
+			throw import_error(INCORRECT_VALUE);
 	}
 	return object();
 }
@@ -83,7 +83,7 @@ object bool_from(IT& it, IT end)
 		for (int i = 1; i < 4; i++)
 		{
 			if (getmv(it, end) != "true"[i])
-				throw import_error(ERR_VAL);
+				throw import_error(INCORRECT_VALUE);
 		}
 		return object(true);
 	}
@@ -92,12 +92,12 @@ object bool_from(IT& it, IT end)
 		for (int i = 1; i < 5; i++)
 		{
 			if (getmv(it, end) != "false"[i])
-				throw import_error(ERR_VAL);
+				throw import_error(INCORRECT_VALUE);
 		}
 		return object(false);
 	}
 	else
-		throw import_error(ERR_VAL);
+		throw import_error(INCORRECT_VALUE);
 }
 
 template<class IT>
@@ -123,7 +123,7 @@ object number_from(IT& it, IT end)
 		while (it != end && get(it, end) >= '0' && get(it, end) <= '9');
 	}
 	else
-		throw import_error(ERR_VAL);
+		throw import_error(INCORRECT_VALUE);
 	std::string apt;
 	if (it != end && get(it, end) == '.')
 	{
@@ -135,7 +135,7 @@ object number_from(IT& it, IT end)
 			while (it != end && get(it, end) >= '0' && get(it, end) <= '9');
 		}
 		else
-			throw import_error(ERR_VAL);
+			throw import_error(INCORRECT_VALUE);
 	}
 	std::string exp;
 	long long expll;
@@ -153,14 +153,14 @@ object number_from(IT& it, IT end)
 			while (it != end && get(it, end) >= '0' && get(it, end) <= '9');
 		}
 		else
-			throw import_error(ERR_VAL);
+			throw import_error(INCORRECT_VALUE);
 		try
 		{
 			expll = std::stoll(exp);
 		}
 		catch (const std::out_of_range& e)
 		{
-			throw import_error(ERR_RNG);
+			throw import_error(VALUE_OUT_OF_RANGE);
 		}
 	}
 	else
@@ -177,7 +177,7 @@ object number_from(IT& it, IT end)
 		}
 		catch (const std::out_of_range& e)
 		{
-			throw import_error(ERR_RNG);
+			throw import_error(VALUE_OUT_OF_RANGE);
 		}
 	}
 	if (expll > 0)
@@ -208,7 +208,7 @@ object number_from(IT& it, IT end)
 		}
 		catch (const std::out_of_range& e2)
 		{
-			throw import_error(ERR_RNG);
+			throw import_error(VALUE_OUT_OF_RANGE);
 		}
 		return object((minus ? -1 : 1) * resultld);
 	}
@@ -234,7 +234,7 @@ object string_from(IT& it, IT end)
 {
 	eat_ws(it, end);
 	if (getmv(it, end) != '"')
-		throw import_error(ERR_VAL);
+		throw import_error(INCORRECT_VALUE);
 	std::string result;
 	char c;
 	while ((c = getmv(it, end)) != '"')
@@ -264,15 +264,15 @@ object string_from(IT& it, IT end)
 					result += '\t';
 					break;
 				case 'u':
-					throw import_error(ERR_IMP);
+					throw import_error(VALUE_NOT_IMPLEMENTED);
 				default:
-					throw import_error(ERR_VAL);
+					throw import_error(INCORRECT_VALUE);
 			}
 		}
 		else if (c >= ' ' && c < 127)
 			result += c;
 		else
-			throw import_error(ERR_VAL);
+			throw import_error(INCORRECT_VALUE);
 	}
 	return object(result);
 }
@@ -282,7 +282,7 @@ object vector_from(IT& it, IT end)
 {
 	eat_ws(it, end);
 	if (getmv(it, end) != '[')
-		throw import_error(ERR_VAL);
+		throw import_error(INCORRECT_VALUE);
 	std::vector<object> result;
 	while (get(it, end) != ']')
 	{
@@ -293,7 +293,7 @@ object vector_from(IT& it, IT end)
 		if ((c = get(it, end)) == ']')
 			break;
 		else if (c != ',')
-			throw import_error(ERR_VAL);
+			throw import_error(INCORRECT_VALUE);
 		else
 			mov(it);
 	}
@@ -306,17 +306,17 @@ object map_from(IT& it, IT end)
 {
 	eat_ws(it, end);
 	if (getmv(it, end) != '{')
-		throw import_error(ERR_VAL);
+		throw import_error(INCORRECT_VALUE);
 	std::map<std::string, object> result;
 	while (get(it, end) != '}')
 	{
 		eat_ws(it, end);
 		std::string key = string_from(it, end);
 		if (result.contains(key))
-			throw import_error(ERR_KEY);
+			throw import_error(REPEATED_MAP_KEY);
 		eat_ws(it, end);
 		if (getmv(it, end) != ':')
-			throw import_error(ERR_VAL);
+			throw import_error(INCORRECT_VALUE);
 		eat_ws(it, end);
 		object value = from(it, end);
 		result[key] = value;
@@ -325,7 +325,7 @@ object map_from(IT& it, IT end)
 		if ((c = get(it, end)) == '}')
 			break;
 		else if (c != ',')
-			throw import_error(ERR_VAL);
+			throw import_error(INCORRECT_VALUE);
 		else
 			mov(it);
 	}
@@ -363,7 +363,7 @@ object from(IT& it, IT end)
 		case '{':
 			return map_from(it, end);
 	}
-	throw import_error(ERR_VAL);
+	throw import_error(INCORRECT_VALUE);
 }
 
 object from(const std::string& json_str)

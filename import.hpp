@@ -6,25 +6,41 @@
 namespace tokox::json
 {
 
+enum error_type
+{
+	INCORRECT_VALUE,
+	VALUE_OUT_OF_RANGE,
+	REPEATED_MAP_KEY,
+	UNEXPECTED_END,
+	VALUE_NOT_IMPLEMENTED
+};
+
 class import_error : public std::exception
 {
 public:
-	import_error(const std::string& message): m_message(message) {}
+	import_error(const error_type _type): type(_type) {}
 
 	const char* what() const noexcept override
 	{
-		return m_message.c_str();
+		switch (type)
+		{
+			case INCORRECT_VALUE:
+				return "Incorrect value!";
+			case VALUE_OUT_OF_RANGE:
+				return "Value out of range!";
+			case REPEATED_MAP_KEY:
+				return "Repeated map key!";
+			case UNEXPECTED_END:
+				return "Unexpected end!";
+			case VALUE_NOT_IMPLEMENTED:
+				return "Value not implemented!";
+			default:
+				return "Unknown error!";
+		}
 	}
-
 private:
-	std::string m_message;
+	error_type type;
 };
-
-constexpr const char* ERR_VAL = "Wrong value!";
-constexpr const char* ERR_RNG = "Value out of range!";
-constexpr const char* ERR_KEY = "Repeated map key!";
-constexpr const char* ERR_END = "Unexpected end!";
-constexpr const char* ERR_IMP = "Value not implemented!";
 
 constexpr const size_t float_prec = 32;
 
