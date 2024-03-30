@@ -1,6 +1,7 @@
 #ifndef TOKOX_CPP_JSON_IMPORT_HPP
 #define TOKOX_CPP_JSON_IMPORT_HPP
 
+#include <stdexcept>
 #include "object.hpp"
 
 namespace tokox::json
@@ -35,7 +36,7 @@ public:
 			case VALUE_NOT_IMPLEMENTED:
 				return "Value not implemented!";
 			default:
-				return "Unknown error!";
+				throw std::runtime_error("Unknown error_type!");
 		}
 	}
 private:

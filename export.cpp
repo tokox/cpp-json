@@ -165,6 +165,8 @@ IT& to(const object& obj, IT& it, int tab)
 			return vector_to(obj, it, tab);
 		case Map:
 			return map_to(obj, it, tab);
+		default:
+			throw std::runtime_error("Unknown value_type");
 	}
 	return it;
 }
