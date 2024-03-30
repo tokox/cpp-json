@@ -17,8 +17,28 @@ jobs:
     container: fedora:latest
 
     steps:
-      - name: Install copr-cli
-        run: dnf install -y copr-cli
+      - name: Install copr-cli and git
+        run: dnf install -y copr-cli git && dnf upgrade -y copr-cli git
+
+      - name: Checkout code
+        uses: actions/checkout@v4.1.1
+      
+      - name: Confirm version and release in spec file
+        run: |
+          version="$(awk '/Version:/ {print $2}' cpp-json.spec)"
+          release="$(awk '/Release:/ {print $2}' cpp-json.spec)"
+          release="${release%\%\{\?dist\}}"
+          if [[ ${{ github.ref_name }} =~ - ]]; then
+            if [[ ${{ github.ref_name }} != "v$version-$release" ]]; then
+              echo "Tag name does not match version and release in cpp-json.spec"
+              exit 1
+            fi
+          else
+            if [[ ${{ github.ref_name }} != "v$version" || "$release" != "1" ]]; then
+              echo "Tag name does not match version in cpp-json.spec"
+              exit 1
+            fi
+          fi
 
       - name: Setup copr-cli
         run: |
@@ -89,7 +109,7 @@ jobs:
 
     steps:
       - name: Install copr-cli
-        run: dnf install -y copr-cli
+        run: dnf install -y copr-cli && dnf upgrade -y copr-cli
 
       - name: Setup copr-cli
         run: |
