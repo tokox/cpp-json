@@ -1,70 +1,35 @@
 # C++ JSON object import/export
 
-This library contains class to represent **JSON object** and **functions to import/export it**.
+This library contains a *class* to represent **JSON object** and **functions to parse/format it**.
 
-## Overview
+- This library is **header-only** *(no precompiled files)*. Just include `json.hpp` in your project. \
+  \**There are `.cpp` files, but they are included from the header file.*
+- It **does not** use any *external libraries* (only *standard C++ libraries*).
+- Test program called `test.cpp` is just *parsing* and *formatting* a **JSON object**.
 
-This library is **header-only** *(no precompiled files)* and **single-file** *(only one file for everything)*.
-All contents are kept in **namespace `tokox::json`** as listed below.
-It **does not** use any *external libraries* (**only** *standard C++ libraries*).
-Test program called `test.cpp` is just reading and writing same one JSON object.
+## Versions & Releases
 
-### Classes, constants and variables
+- All versions are tagged in the format `vMAJOR.MINOR(-PATCH)?`. \
+  -PATCH is optional. \
+  *Example: `v1.0`, `v1.1`, `v1.2-2`.*
+- Special tag `vlatest` always points to the latest version.
 
-- Class `object` represents **JSON object**. It is made on top of `std::any`
-- `value_type` is *an enum* representing **JSON objects types**
-- Types are represented as following:
+- Releases are made automatically on Github for every new version. \
+  They are available in the **Releases** tab.
+- All releases automatically build on **Fedora COPR** in [`tokox/cpp-json` repo](https://copr.fedorainfracloud.org/coprs/tokox/cpp-json/). \
+  Release **is not** made if build fails. \
+  All built packages are uploaded as assets to the release.
+- Releases may be also available in *AUR* or *PPA* in the future. \
+  *I'm not using them, so I don't know how and where to do it and I am not really interested in these. If you want to help, contact me.*
+- I am not planning on any Windows or MacOS support.
 
-    | JSON type   | C++ type                              | `value_type`             |
-    | :---------- | :------------------------------------ | :----------------------- |
-    | `Null`      | **\[None]** (std::any has no value)   | `Null`                   |
-    | `Boolean`   | `bool`                                | `Bool`                   |
-    | `Number`    | `long long int` and `long double`     | `Int` or `Float`         |
-    | `String`    | `std::string`                         | `String`                 |
-    | `Array`     | `std::vector<object>`                 | `Vector`                 |
-    | `Object`    | `std::map<std::string, object>`       | `Map`                    |
+## Documentation *(in progress)*
 
-- `import_error` is **an exception class** thrown by **import functions** (export functions don't throw (see below))
-- `ERR_???` are **error messages**
+- Documentation will be created using *Doxygen*.
+- It will be automatically generated and pushed to `gh-pages` branch on every commit.
+- `gh-pages` branch will be binded to Github Pages and available at [https://tokox.github.io/cpp-json/](https://tokox.github.io/cpp-json/).
+- Please wait a moment for the documentation to be available.
 
-- `float_prec` is **float precision**
+## Some useless license information
 
-### Functions for import:
-
-| Function                                                                     | Description                                                                    |
-| :--------------------------------------------------------------------------- | :----------------------------------------------------------------------------- |
-| `object from(iterator& input_iterator, iterator input_end)`                  | Main function for import. Detects what type of object it is and calls corresponding `TYPE_from` function. Takes iterator to current input character and input end (it may be iterator to `std::*stream`, `std::string`, `std::vector`, c-string - basically whatever you want). `iterator` is a template parameter. Returns `object` with imported JSON |
-| `object TYPE_from(iterator& input_iterator, iterator input_end)`             | Imports specific type TYPE (for every JSON type). They are called by `from` after type detection. They import specific type - if it isn't correct they throw `import_error` |
-| `object from(std::string& input_string)`                                     | Returns `from(input_string->iterator)` (first) |
-| `object& from(object& obj, std::string& input_string)`                       | Calls `from(input_string)` (above), saves result to `obj` and returns it |
-| `object from(std::istream& input_stream)`                                    | Returns `from(input_stream->iterator)` (first) |
-| `object& from(object& obj, std::istream& input_stream)`                      | Calls `from(input_stream)` (above), saves result to `obj` and returns it |
-| `std::istream& operator>>(std::istream& input_stream, object& obj)`          | Calls `from(obj, input_stream)` (above) and returns `input_stream` |
-
-#### :bangbang: Important:
-
-`number_from` is returning `object` containing `Int` (`long long int`) or `Float` (`long double`). It chooses **the better option**. Here is how it works:
-
-| Condition for number                                                                                     | `value_type` (C++ type) |
-| :------------------------------------------------------------------------------------------------------- | :---------------------- |
-| doesn't fit in `long long int` (less than one or more than `std::numeric_limits<long long int>::max()`)  | `Float` (`long double`) |
-| fits in `long long int` and is an integer                                                                | `Int` (`long long int`) |
-| fits in `long long int` and `long double` loses precision (is less precise than rounded `long long int`) | `Int` (`long long int`) |
-| Well, `long long int` isn't any better than `long double` there! (Other)                                 | `Float` (`long double`) |
-
-You can always **cast it** to another **after import**.
-
-### Functions for export:
-
-| Function                                                                               | Description |
-| :------------------------------------------------------------------------------------- | :---------- |
-| `iterator& to(object& obj, iterator& output_iterator, int tab = -1)`                   | Main function for export. Checks what type of object it is and calls corresponding `TYPE_to` function. Takes JSON object, iterator to current output character and optional argument `tab` used for indentation (recursive objects). Negative `tab` means no indentation. `iterator` is a template parameter. Returns `output_iterator` |
-| `iterator& TYPE_to(object& obj, iterator& output_iterator, int tab = -1)`              | Exports specific type TYPE (for every JSON type). They are called by `to` after type check. They export specific type - if it isn't correct `std::get (std::variant)` in `object::get_value` will throw `std::bad_variant_access` |
-| `std::string& to(object& obj, std::string& output_string, int tab = -1)`               | Calls `to(obj, output_string->iterator, tab)` (first) and returns `output_string` |
-| `std::string to(object& obj, int tab = -1)`                                            | Creates an instance of `std::string` and calls `to(obj, created_string, tab)` (above) and returns `created_string` |
-| `std::ostream& to(object& obj, std::ostream& output_stream, int tab = -1)`             | Calls `to(obj, output_stream->iterator, tab)` (first), returns `output_stream` |
-| `std::ostream& operator<<(std::ostream& output_stream, object& obj)`                   | Returns `to(obj, output_stream)` (above) |
-
-#### Some useless license information
-
-This library is licensed under the terms of [**the MIT license**](LICENSE.md). *Why did I put this here? I'm sure no one will care or even read this*
+This library is licensed under the terms of the [**MIT license**](LICENSE.md).
