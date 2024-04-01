@@ -1,5 +1,5 @@
 Name:           tokox-cpp-json
-Version:        1.4
+Version:        1.5
 Release:        1%{?dist}
 Summary:        C++ JSON object import/export library
 
@@ -26,16 +26,30 @@ Bugs and issues report at github: tokox/cpp-json
 
 %install
 mkdir -p %{buildroot}/usr/include/tokox/cpp-json
-cp -a json.hpp %{buildroot}/usr/include/tokox/cpp-json
+cp -a *.hpp *.cpp %{buildroot}/usr/include/tokox/cpp-json
+rm -f %{buildroot}/usr/include/tokox/cpp-json/test.cpp
 mkdir -p %{buildroot}/usr/share/doc/tokox/cpp-json
 cp -a LICENSE.md README.md %{buildroot}/usr/share/doc/tokox/cpp-json
 
 %files
           /usr/include/tokox/cpp-json/json.hpp
+          /usr/include/tokox/cpp-json/types.hpp
+          /usr/include/tokox/cpp-json/types.cpp
+          /usr/include/tokox/cpp-json/object.hpp
+          /usr/include/tokox/cpp-json/object.cpp
+          /usr/include/tokox/cpp-json/import.hpp
+          /usr/include/tokox/cpp-json/import.cpp
+          /usr/include/tokox/cpp-json/export.hpp
+          /usr/include/tokox/cpp-json/export.cpp
 %license  /usr/share/doc/tokox/cpp-json/LICENSE.md
 %doc      /usr/share/doc/tokox/cpp-json/README.md
 
 %changelog
+* Tue Apr 02 2024 Tomasz Kośnikowski (tokox) - 1.5-1
+  - Refactored import/export
+  - Updated README
+  - Deleted out-of-date docs
+
 * Sat Mar 30 2024 Tomasz Kośnikowski (tokox) - 1.4-1
   - Rewritten import_error
   - Refactored error messages
