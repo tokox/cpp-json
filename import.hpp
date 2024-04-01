@@ -7,19 +7,19 @@
 namespace tokox::json
 {
 
-enum error_type
-{
-	INCORRECT_VALUE,
-	VALUE_OUT_OF_RANGE,
-	REPEATED_MAP_KEY,
-	UNEXPECTED_END,
-	VALUE_NOT_IMPLEMENTED
-};
-
-class import_error : public std::exception
+class parse_error : public std::exception
 {
 public:
-	import_error(const error_type _type): type(_type) {}
+	enum error_type
+	{
+		INCORRECT_VALUE,
+		VALUE_OUT_OF_RANGE,
+		REPEATED_MAP_KEY,
+		UNEXPECTED_END,
+		VALUE_NOT_IMPLEMENTED
+	};
+
+	parse_error(const error_type _type): type(_type) {}
 
 	const char* what() const noexcept override
 	{
@@ -36,7 +36,7 @@ public:
 			case VALUE_NOT_IMPLEMENTED:
 				return "Value not implemented!";
 			default:
-				throw std::runtime_error("Unknown error_type!");
+				return "Unknown error!";
 		}
 	}
 private:
@@ -46,36 +46,36 @@ private:
 constexpr const size_t float_prec = 32;
 
 template<class IT>
-object from(IT& it, IT end);
+object parse(IT& it, IT end);
 
-object from(const std::string& json_str);
+object parse(const std::string& json_str);
 
-object from(std::istream& json_stream);
+object parse(std::istream& json_stream);
 
-object& from(object& obj, const std::string& json_str);
+object& parse(object& obj, const std::string& json_str);
 
-object& from(object& obj, std::istream& json_stream);
+object& parse(object& obj, std::istream& json_stream);
 
 std::istream& operator>>(std::istream& json_stream, object& obj);
 
 
 template<class IT>
-object null_from(IT& it, IT end);
+object parse_null(IT& it, IT end);
 
 template<class IT>
-object bool_from(IT& it, IT end);
+object parse_bool(IT& it, IT end);
 
 template<class IT>
-object number_from(IT& it, IT end);
+object parse_number(IT& it, IT end);
 
 template<class IT>
-object string_from(IT& it, IT end);
+object parse_string(IT& it, IT end);
 
 template<class IT>
-object vector_from(IT& it, IT end);
+object parse_vector(IT& it, IT end);
 
 template<class IT>
-object map_from(IT& it, IT end);
+object parse_map(IT& it, IT end);
 
 }
 

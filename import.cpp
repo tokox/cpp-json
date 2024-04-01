@@ -41,7 +41,7 @@ template<class IT>
 char get(IT& it, IT end)
 {
 	if (it == end)
-		throw import_error(UNEXPECTED_END);
+		throw parse_error(parse_error::UNEXPECTED_END);
 	return *it;
 }
 
@@ -62,19 +62,19 @@ void eat_ws(IT& it, IT end)
 }
 
 template<class IT>
-object null_from(IT& it, IT end)
+object parse_null(IT& it, IT end)
 {
 	eat_ws(it, end);
 	for (int i = 0; i < 4; i++)
 	{
 		if (getmv(it, end) != "null"[i])
-			throw import_error(INCORRECT_VALUE);
+			throw parse_error(parse_error::INCORRECT_VALUE);
 	}
 	return object();
 }
 
 template<class IT>
-object bool_from(IT& it, IT end)
+object parse_bool(IT& it, IT end)
 {
 	eat_ws(it, end);
 	char c = getmv(it, end);
@@ -83,7 +83,7 @@ object bool_from(IT& it, IT end)
 		for (int i = 1; i < 4; i++)
 		{
 			if (getmv(it, end) != "true"[i])
-				throw import_error(INCORRECT_VALUE);
+				throw parse_error(parse_error::INCORRECT_VALUE);
 		}
 		return object(true);
 	}
@@ -92,16 +92,16 @@ object bool_from(IT& it, IT end)
 		for (int i = 1; i < 5; i++)
 		{
 			if (getmv(it, end) != "false"[i])
-				throw import_error(INCORRECT_VALUE);
+				throw parse_error(parse_error::INCORRECT_VALUE);
 		}
 		return object(false);
 	}
 	else
-		throw import_error(INCORRECT_VALUE);
+		throw parse_error(parse_error::INCORRECT_VALUE);
 }
 
 template<class IT>
-object number_from(IT& it, IT end)
+object parse_number(IT& it, IT end)
 {
 	eat_ws(it, end);
 	bool minus = false;
@@ -123,7 +123,7 @@ object number_from(IT& it, IT end)
 		while (it != end && get(it, end) >= '0' && get(it, end) <= '9');
 	}
 	else
-		throw import_error(INCORRECT_VALUE);
+		throw parse_error(parse_error::INCORRECT_VALUE);
 	std::string apt;
 	if (it != end && get(it, end) == '.')
 	{
@@ -135,7 +135,7 @@ object number_from(IT& it, IT end)
 			while (it != end && get(it, end) >= '0' && get(it, end) <= '9');
 		}
 		else
-			throw import_error(INCORRECT_VALUE);
+			throw parse_error(parse_error::INCORRECT_VALUE);
 	}
 	std::string exp;
 	long long expll;
@@ -153,14 +153,14 @@ object number_from(IT& it, IT end)
 			while (it != end && get(it, end) >= '0' && get(it, end) <= '9');
 		}
 		else
-			throw import_error(INCORRECT_VALUE);
+			throw parse_error(parse_error::INCORRECT_VALUE);
 		try
 		{
 			expll = std::stoll(exp);
 		}
 		catch (const std::out_of_range& e)
 		{
-			throw import_error(VALUE_OUT_OF_RANGE);
+			throw parse_error(parse_error::VALUE_OUT_OF_RANGE);
 		}
 	}
 	else
@@ -177,7 +177,7 @@ object number_from(IT& it, IT end)
 		}
 		catch (const std::out_of_range& e)
 		{
-			throw import_error(VALUE_OUT_OF_RANGE);
+			throw parse_error(parse_error::VALUE_OUT_OF_RANGE);
 		}
 	}
 	if (expll > 0)
@@ -208,7 +208,7 @@ object number_from(IT& it, IT end)
 		}
 		catch (const std::out_of_range& e2)
 		{
-			throw import_error(VALUE_OUT_OF_RANGE);
+			throw parse_error(parse_error::VALUE_OUT_OF_RANGE);
 		}
 		return object((minus ? -1 : 1) * resultld);
 	}
@@ -230,11 +230,11 @@ object number_from(IT& it, IT end)
 }
 
 template<class IT>
-object string_from(IT& it, IT end)
+object parse_string(IT& it, IT end)
 {
 	eat_ws(it, end);
 	if (getmv(it, end) != '"')
-		throw import_error(INCORRECT_VALUE);
+		throw parse_error(parse_error::INCORRECT_VALUE);
 	std::string result;
 	char c;
 	while ((c = getmv(it, end)) != '"')
@@ -264,36 +264,36 @@ object string_from(IT& it, IT end)
 					result += '\t';
 					break;
 				case 'u':
-					throw import_error(VALUE_NOT_IMPLEMENTED);
+					throw parse_error(parse_error::VALUE_NOT_IMPLEMENTED);
 				default:
-					throw import_error(INCORRECT_VALUE);
+					throw parse_error(parse_error::INCORRECT_VALUE);
 			}
 		}
 		else if (c >= ' ' && c < 127)
 			result += c;
 		else
-			throw import_error(INCORRECT_VALUE);
+			throw parse_error(parse_error::INCORRECT_VALUE);
 	}
 	return object(result);
 }
 
 template<class IT>
-object vector_from(IT& it, IT end)
+object parse_vector(IT& it, IT end)
 {
 	eat_ws(it, end);
 	if (getmv(it, end) != '[')
-		throw import_error(INCORRECT_VALUE);
+		throw parse_error(parse_error::INCORRECT_VALUE);
 	std::vector<object> result;
 	while (get(it, end) != ']')
 	{
 		eat_ws(it, end);
-		result.push_back(from(it, end));
+		result.push_back(parse(it, end));
 		eat_ws(it, end);
 		char c;
 		if ((c = get(it, end)) == ']')
 			break;
 		else if (c != ',')
-			throw import_error(INCORRECT_VALUE);
+			throw parse_error(parse_error::INCORRECT_VALUE);
 		else
 			mov(it);
 	}
@@ -302,30 +302,30 @@ object vector_from(IT& it, IT end)
 }
 
 template<class IT>
-object map_from(IT& it, IT end)
+object parse_map(IT& it, IT end)
 {
 	eat_ws(it, end);
 	if (getmv(it, end) != '{')
-		throw import_error(INCORRECT_VALUE);
+		throw parse_error(parse_error::INCORRECT_VALUE);
 	std::map<std::string, object> result;
 	while (get(it, end) != '}')
 	{
 		eat_ws(it, end);
-		std::string key = string_from(it, end);
+		std::string key = parse_string(it, end);
 		if (result.contains(key))
-			throw import_error(REPEATED_MAP_KEY);
+			throw parse_error(parse_error::REPEATED_MAP_KEY);
 		eat_ws(it, end);
 		if (getmv(it, end) != ':')
-			throw import_error(INCORRECT_VALUE);
+			throw parse_error(parse_error::INCORRECT_VALUE);
 		eat_ws(it, end);
-		object value = from(it, end);
+		object value = parse(it, end);
 		result[key] = value;
 		eat_ws(it, end);
 		char c;
 		if ((c = get(it, end)) == '}')
 			break;
 		else if (c != ',')
-			throw import_error(INCORRECT_VALUE);
+			throw parse_error(parse_error::INCORRECT_VALUE);
 		else
 			mov(it);
 	}
@@ -334,16 +334,16 @@ object map_from(IT& it, IT end)
 }
 
 template<class IT>
-object from(IT& it, IT end)
+object parse(IT& it, IT end)
 {
 	eat_ws(it, end);
 	switch (get(it, end))
 	{
 		case 'n':
-			return null_from(it, end);
+			return parse_null(it, end);
 		case 't':
 		case 'f':
-			return bool_from(it, end);
+			return parse_bool(it, end);
 		case '-':
 		case '0':
 		case '1':
@@ -355,42 +355,42 @@ object from(IT& it, IT end)
 		case '7':
 		case '8':
 		case '9':
-			return number_from(it, end);
+			return parse_number(it, end);
 		case '"':
-			return string_from(it, end);
+			return parse_string(it, end);
 		case '[':
-			return vector_from(it, end);
+			return parse_vector(it, end);
 		case '{':
-			return map_from(it, end);
+			return parse_map(it, end);
 	}
-	throw import_error(INCORRECT_VALUE);
+	throw parse_error(parse_error::INCORRECT_VALUE);
 }
 
-object from(const std::string& json_str)
+object parse(const std::string& json_str)
 {
 	std::string::const_iterator jsit(json_str.begin());
-	return from(jsit, json_str.end());
+	return parse(jsit, json_str.end());
 }
 
-object from(std::istream& json_stream)
+object parse(std::istream& json_stream)
 {
 	std::istreambuf_iterator<char> jsit(json_stream);
-	return from(jsit, std::istreambuf_iterator<char>());
+	return parse(jsit, std::istreambuf_iterator<char>());
 }
 
-object& from(object& obj, const std::string& json_str)
+object& parse(object& obj, const std::string& json_str)
 {
-	return (obj = from(json_str));
+	return (obj = parse(json_str));
 }
 
-object& from(object& obj, std::istream& json_stream)
+object& parse(object& obj, std::istream& json_stream)
 {
-	return (obj = from(json_stream));
+	return (obj = parse(json_stream));
 }
 
 std::istream& operator>>(std::istream& json_stream, object& obj)
 {
-	from(obj, json_stream);
+	parse(obj, json_stream);
 	return json_stream;
 }
 
