@@ -283,7 +283,7 @@ object parse_vector(IT& it, IT end)
 	eat_ws(it, end);
 	if (getmv(it, end) != '[')
 		throw parse_error(parse_error::INCORRECT_VALUE);
-	std::vector<object> result;
+	object_type_from_value_type<Vector> result;
 	while (get(it, end) != ']')
 	{
 		eat_ws(it, end);
@@ -307,7 +307,7 @@ object parse_map(IT& it, IT end)
 	eat_ws(it, end);
 	if (getmv(it, end) != '{')
 		throw parse_error(parse_error::INCORRECT_VALUE);
-	std::map<std::string, object> result;
+	object_type_from_value_type<Map> result;
 	while (get(it, end) != '}')
 	{
 		eat_ws(it, end);
