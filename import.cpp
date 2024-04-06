@@ -2,6 +2,8 @@
 #include <stdexcept>
 #include <cmath>
 #include <limits>
+#include <codecvt>
+#include <locale>
 
 namespace tokox::json
 {
@@ -264,13 +266,31 @@ object parse_string(IT& it, IT end)
 					result += '\t';
 					break;
 				case 'u':
-					throw parse_error(parse_error::VALUE_NOT_IMPLEMENTED);
+					{
+						unsigned int codepoint = 0;
+						for (int i = 0; i < 4; i++)
+						{
+							c = getmv(it, end);
+							if (c >= '0' && c <= '9')
+								codepoint = codepoint * 16 + c - '0';
+							else if (c >= 'A' && c <= 'F')
+								codepoint = codepoint * 16 + c - 'A' + 10;
+							else if (c >= 'a' && c <= 'f')
+								codepoint = codepoint * 16 + c - 'a' + 10;
+							else
+								throw parse_error(parse_error::INCORRECT_VALUE);
+						}
+						result += std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t>().to_bytes(codepoint);
+					}
+					break;
 				default:
 					throw parse_error(parse_error::INCORRECT_VALUE);
 			}
 		}
-		else if (c >= ' ' && c < 127)
+		else if (c >= ' ' && c != 127) // TODO: check utf-8 too
+		{
 			result += c;
+		}
 		else
 			throw parse_error(parse_error::INCORRECT_VALUE);
 	}
