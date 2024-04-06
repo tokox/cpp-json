@@ -1,6 +1,6 @@
-# C++ JSON object import/export
+# C++ JSON object parser/formatter
 
-This library contains a *class* to represent **JSON object** and **functions to parse/format it**.
+This library contains a *class* to represent **JSON object** and *functions* to **parse/format** it.
 
 - This library is **header-only** *(no precompiled files)*. Just include `json.hpp` in your project. \
   \**There are `.cpp` files, but they are included from the header file.*
@@ -21,13 +21,15 @@ This library contains a *class* to represent **JSON object** and **functions to 
   All built packages are uploaded as assets to the release.
 - Releases may be also available in *AUR* or *PPA* in the future. \
   *I'm not using them, so I don't know how and where to do it and I am not really interested in these. If you want to help, contact me.*
-- I am not planning on any Windows or MacOS support.
+- I am not planning on any Windows or MacOS support. \
+  *It should work, but ...*
 
 ## Documentation *(in progress)*
 
 - Documentation will be created using *Doxygen*.
 - It will be automatically generated and pushed to `gh-pages` branch on every commit.
 - `gh-pages` branch will be binded to Github Pages and available at [https://tokox.github.io/cpp-json/](https://tokox.github.io/cpp-json/).
+- Possible that it will be in repo wiki, but I don't know if it'll work.
 - Please wait a moment for the documentation to be available.
 
 ## Some useless license information
